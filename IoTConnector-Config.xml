@@ -1,0 +1,86 @@
+<!-- Filename: IoTConnector-Config.xml  -->
+<!-- Refer to https://techdocs.zebra.com/dcs/scanners/iot-connector/about/ for IoT Connector info -->
+<config name="IoT Connector">
+    <settings>
+        <spd_log>
+            <!-- Sinks section - define output target(s) of IoT Connector  -->
+            <!-- Multiple sink types are supported. Refer to https://github.com/gabime/spdlog/wiki/4.-Sinks -->
+            <sinks>
+                <!-- HTTP Post endpoint -->
+                <sink type="http_sink_mt" name="http_sink_mt">
+                    <!-- URL of the server instance -->
+                    <property key="url" value="http://localhost:3000/" />
+                    <!-- HTTP headers for the request. Use semicolon(;) to separate multiple headers. Eg : header1;header2 -->
+                    <property key="request_header" value="Host;Content-Type;Accept" />
+                    <!-- Set the value to "true" to enable the batch mode. You can set the logging time interval and/or number of log entries(batch size) per batch -->
+                    <property key="batch_mode" value="false" />
+                    <!-- Number of logs per batch -->
+                    <property key="batch_size" value="0" />
+                    <!-- Set the value to true to get HTTP request/response information in a file named "logs/iotConnector-verbose.log"-->
+                    <property key="verbose_mode" value="false" />
+                    <!-- Pattern of a single log entry. Please refer to https://github.com/gabime/spdlog/wiki/3.-Custom-formatting for more information. -->
+                    <property key="log_pattern" value='{"event":{"time": "%Y-%m-%d %H:%M:%S", "level": "%^%l%$", "hostname": "%J", "message": "%v"}}' />
+                    <!-- Log level to be recorded.  2 = INFO, 3 = WARNING, 4 = ERROR, 5 = CRITICAL 6 = LOG_OFF, 0,1 = TRACE,DEBUG (Works only with debug build) -->
+                    <property key="log_level" value="2" />
+                </sink>
+                <!-- Command line output (only when IoTConnector executable run in this mode) -->
+                <sink type="stdout_color_sink_mt" name="stdout_color_sink_mt">
+                    <property key="log_pattern" value="[%Y-%m-%d %H:%M:%S] %v" />
+                    <property key="log_level" value="2" />
+                </sink>
+            </sinks>
+        </spd_log>
+        <!-- Log Elements section -->
+                <!-- Regular expression wildcards for model and serial may be defined -->
+                <!-- Refer to https://www.freeformatter.com/cron-expression-generator-quartz.html for the schedule pattern -->
+        <log-elements>
+            <!-- Configure get-statistics entries - intended for collection of scanner data -->
+            <get-statistics enabled="true">
+                <!-- Daily at 2am -->
+                <group model=".*" serial=".*" schedule="0 2 0 * * *">
+                    <!-- Scanner-attribute-ids to be retrieved -->
+                    <scanner-attribute-ids>25003</scanner-attribute-ids>
+                </group>
+            </get-statistics>
+            <!-- Configure check-health entries - intended to periodically confirm scanner availability -->
+            <check-health enabled="false">
+                <!-- Every 30 mins --> 
+                <group model=".*" serial=".*" schedule="0 0/30 * * * *">
+                    <!-- Scanner-attribute-ids to be retrieved -->
+                    <scanner-attribute-ids>534,533</scanner-attribute-ids>
+                </group>
+            </check-health>
+            <!-- Configure an on-agent-startup entry -->
+            <on-agent-start-up enabled="true">
+                <group model=".*" serial=".*">
+                    <!-- Scanner-attribute-ids to be retrieved -->
+                    <scanner-attribute-ids>534,533</scanner-attribute-ids>
+                </group>
+            </on-agent-start-up>
+            <!-- Enable/disable on-system-shutdown entry -->
+            <on-system-shutdown enabled="true" />
+            <!-- Configure entries for scanner device attach -->
+            <on-attach enabled="true">
+                <group model=".*" serial=".*">
+                    <!-- Scanner-attribute-ids to be retrieved -->
+                    <scanner-attribute-ids>534,533</scanner-attribute-ids>
+                </group>
+            </on-attach>
+            <!-- Enable/disable entry for scanner device detach -->
+            <on-detach enabled="true" />
+            <!-- Used to enable/disable log entries on barcode events. Non printable characters in the barcode will be replaced by "_"(ASCII 0x5F) -->
+            <on-barcode enabled="true" />
+            <!-- Used to enable/disable log entries on firmware download events -->
+            <on-firmware-download-start enabled="true" />
+            <on-firmware-download-progress enabled="true" />
+            <on-firmware-download-end enabled="true" />
+            <on-firmware-download-error enabled="true" />
+            <!-- on-config-name-change is used to enable/disable log entries when a config name change occurs. This will be logged using the same schedule as check-health -->
+            <!-- The timeout value specifies the time to wait before logging a config change -->
+            <!-- The max timeout value is 60000 milliseconds (60 seconds). -->
+            <on-config-name-change enabled="true" timeout="5000" />
+            <!-- on-non-decode-event is used to enable/disable log entries if MP7xxx is enabled for non decode events -->
+            <on-non-decode-event enabled="true"/>
+        </log-elements>
+    </settings>
+</config>    
